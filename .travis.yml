@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kristutis/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run kristutis/react-test npm test -- --coverage
+
+after-success:
+  - docker build -t kristutis/multi-client ./client
+  - docker build -t kristutis/multi-nignx ./nginx
+  - docker build -t kristutis/multi-server ./server
+  - docker build -t kristutis/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kristutis/multi-client
+  - docker push kristutis/multi-nignx
+  - docker push kristutis/multi-server
+  - docker push kristutis/multi-worker
